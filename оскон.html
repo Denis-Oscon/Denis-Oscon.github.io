@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Оскон - Книжный магазин</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .book-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 15px;
+            width: 280px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-image {
+            background: #e0e0e0;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .book-info {
+            padding: 20px;
+        }
+
+        .book-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .book-author {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .book-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 15px 0;
+        }
+
+        .book-type {
+            display: inline-block;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        .book-type.digital {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .book-type.physical {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .buy-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .buy-btn:hover {
+            background: #219a52;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .pay-submit {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #856404;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Оскон</h1>
+            <p>Электронные книги — сразу после оплаты<br>Печатные книги — с доставкой по России</p>
+        </div>
+
+        <div class="book-list" id="bookList"></div>
+
+        <footer>
+            <p>© 2026 Оскон — книги для каждого</p>
+        </footer>
+    </div>
+
+    <!-- Модальное окно для адреса -->
+    <div id="addressModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeAddressModal">&times;</span>
+            <h2>📦 Адрес доставки</h2>
+            <div id="addressBookInfo" style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;"></div>
+            <form id="addressForm">
+                <div class="form-group">
+                    <label>ФИО *</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label>Город *</label>
+                    <input type="text" id="city" required>
+                </div>
+                <div class="form-group">
+                    <label>Адрес (улица, дом, кв.) *</label>
+                    <textarea id="address" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Индекс *</label>
+                    <input type="text" id="postalCode" required>
+                </div>
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                <button type="submit" class="pay-submit">Продолжить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для оплаты -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closePaymentModal">&times;</span>
+            <h2>💳 Оплата</h2>
+            <div id="paymentBookInfo" style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;"></div>
+            <div id="addressInfo" style="background: #e8f4fd; padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 13px; display: none;"></div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label>Номер карты</label>
+                    <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000">
+                </div>
+                <div class="form-group">
+                    <label>Имя владельца</label>
+                    <input type="text" id="cardName" placeholder="IVAN IVANOV">
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Срок</label>
+                        <input type="text" id="cardExpiry" placeholder="MM/ГГ">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>CVV</label>
+                        <input type="password" id="cardCvv" placeholder="123">
+                    </div>
+                </div>
+                <button type="submit" class="pay-submit">Оплатить</button>
+                <div class="warning">
+                    ⚠️ Тестовый режим. Используйте номер 4242 4242 4242 4242, любой срок и CVV.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 📚 СПИСОК КНИГ — МЕНЯЙ ЗДЕСЬ
+        // type: "digital" — электронная, "physical" — печатная
+        // ============================================
+        const books = [
+            {
+                title: "Мастер и Маргарита",
+                author: "Михаил Булгаков",
+                price: "390 ₽",
+                priceValue: 390,
+                type: "digital",
+                fileLink: "https://example.com/master_i_margarita.pdf"
+            },
+            {
+                title: "Мастер и Маргарита",
+                author: "Михаил Булгаков",
+                price: "650 ₽",
+                priceValue: 650,
+                type: "physical"
+            },
+            {
+                title: "1984",
+                author: "Джордж Оруэлл",
+                price: "290 ₽",
+                priceValue: 290,
+                type: "digital",
+                fileLink: "https://example.com/1984.pdf"
+            },
+            {
+                title: "1984",
+                author: "Джордж Оруэлл",
+                price: "550 ₽",
+                priceValue: 550,
+                type: "physical"
+            },
+            {
+                title: "Преступление и наказание",
+                author: "Фёдор Достоевский",
+                price: "350 ₽",
+                priceValue: 350,
+                type: "digital",
+                fileLink: "https://example.com/prestuplenie_i_nakazanie.pdf"
+            },
+            {
+                title: "Преступление и наказание",
+                author: "Фёдор Достоевский",
+                price: "600 ₽",
+                priceValue: 600,
+                type: "physical"
+            }
+        ];
+
+        let currentBook = null;
+        let currentAddress = null;
+
+        // Рисуем книги
+        const bookList = document.getElementById('bookList');
+        
+        books.forEach((book, index) => {
+            const card = document.createElement('div');
+            card.className = 'book-card';
+            card.innerHTML = `
+                <div class="book-image">📖 Обложка</div>
+                <div class="book-info">
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author">${book.author}</div>
+                    <div class="book-type ${book.type}">${book.type === 'digital' ? '📱 Электронная' : '📦 Печатная'}</div>
+                    <div class="book-price">${book.price}</div>
+                    <button class="buy-btn" data-index="${index}">Купить</button>
+                </div>
+            `;
+            bookList.appendChild(card);
+        });
+
+        // Модальные окна
+        const addressModal = document.getElementById('addressModal');
+        const paymentModal = document.getElementById('paymentModal');
+        
+        // Закрытие по крестику и клику вне окна
+        document.getElementById('closeAddressModal').onclick = () => addressModal.style.display = 'none';
+        document.getElementById('closePaymentModal').onclick = () => paymentModal.style.display = 'none';
+        window.onclick = (e) => {
+            if (e.target === addressModal) addressModal.style.display = 'none';
+            if (e.target === paymentModal) paymentModal.style.display = 'none';
+        };
+
+        // Обработка кнопок "Купить"
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = btn.getAttribute('data-index');
+                currentBook = books[index];
+                
+                if (currentBook.type === 'physical') {
+                    // Печатная — запрашиваем адрес
+                    document.getElementById('addressBookInfo').innerHTML = `
+                        <strong>${currentBook.title}</strong><br>
+                        ${currentBook.author}<br>
+                        Цена: ${currentBook.price}
+                    `;
+                    addressModal.style.display = 'flex';
+                } else {
+                    // Электронная — сразу к оплате
+                    document.getElementById('paymentBookInfo').innerHTML = `
+                        <strong>${currentBook.title}</strong><br>
+                        ${currentBook.author}<br>
+                        Цена: ${currentBook.price}<br>
+                        <span style="color: #27ae60;">⚡ Ссылка на скачивание придёт на почту</span>
+                    `;
+                    document.getElementById('addressInfo').style.display = 'none';
+                    paymentModal.style.display = 'flex';
+                }
+            });
+        });
+
+        // Форма адреса
+        document.getElementById('addressForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            currentAddress = {
+                fullName: document.getElementById('fullName').value,
+                city: document.getElementById('city').value,
+                address: document.getElementById('address').value,
+                postalCode: document.getElementById('postalCode').value,
+                phone: document.getElementById('phone').value
+            };
+            
+            document.getElementById('paymentBookInfo').innerHTML = `
+                <strong>${currentBook.title}</strong><br>
+                ${currentBook.author}<br>
+                Цена: ${currentBook.price}
+            `;
+            document.getElementById('addressInfo').innerHTML = `
+                📬 Доставка по адресу:<br>
+                ${currentAddress.fullName}, ${currentAddress.city}, ${currentAddress.address}, ${currentAddress.postalCode}<br>
+                📞 ${currentAddress.phone}
+            `;
+            document.getElementById('addressInfo').style.display = 'block';
+            addressModal.style.display = 'none';
+            paymentModal.style.display = 'flex';
+        });
+
+        // Форма оплаты
+        document.getElementById('paymentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (!document.getElementById('cardNumber').value || !document.getElementById('cardName').value) {
+                alert('⚠️ Заполните данные карты');
+                return;
+            }
+            
+            let message = '';
+            if (currentBook.type === 'digital') {
+                message = `✅ Оплата прошла успешно!\n\nКнига: ${currentBook.title}\nСумма: ${currentBook.price}\n\n📧 Ссылка на скачивание отправлена на вашу почту.\n(в демо-режиме ссылка: ${currentBook.fileLink})`;
+            } else {
+                message = `✅ Оплата прошла успешно!\n\nКнига: ${currentBook.title}\nСумма: ${currentBook.price}\n\n📬 Заказ передан в доставку. Трек-номер придёт на почту в течение 24 часов.\nАдрес: ${currentAddress.city}, ${currentAddress.address}`;
+            }
+            
+            alert(message);
+            paymentModal.style.display = 'none';
+            
+            // Очистка форм
+            document.getElementById('paymentForm').reset();
+            document.getElementById('addressForm').reset();
+        });
+    </script>
+</body>
+</html>
